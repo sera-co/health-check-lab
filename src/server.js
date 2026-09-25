@@ -10,6 +10,20 @@ app.get('/', (req, res) => {
   res.json({ message: 'Welcome to the Orders API' });
 });
 
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
+app.get('/ready', async (req, res) => {
+  try {
+    await db.ping();
+    res.status(200).send('READY');
+  } catch (err) {
+    console.error('Database readiness check failed:', err.message);
+    res.status(503).send('NOT READY');
+  }
+});
+
 app.get('/orders', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM orders ORDER BY id DESC');
@@ -20,6 +34,10 @@ app.get('/orders', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Orders API running on port ${port}`);
-});
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Orders API running on port ${port}`);
+  });
+}
+
+module.exports = app;
